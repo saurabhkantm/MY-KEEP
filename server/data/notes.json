@@ -1,0 +1,81 @@
+[
+  {
+    "id": "note-welcome",
+    "title": "🚀 Welcome to KeepAI — Your AI Second Brain",
+    "content": "KeepAI is a full-stack workspace combining Google Keep's intuitive design with Google Gemini AI.\n\nKey Backend & AI Capabilities:\n• ⚡ Dedicated Node.js & Express REST API\n• 🛡️ Secure Server-Side Gemini AI proxying\n• 📋 Automatic To-Do Checklist Extractor\n• 🎯 Career Hub: Job Description to Interview Cheat Sheet\n• 🎙️ Speech-to-Text Voice Dictation\n• 💾 Persistent Database storage + JSON backups",
+    "isChecklist": false,
+    "checklistItems": [],
+    "color": "default",
+    "isPinned": true,
+    "isArchived": false,
+    "isTrashed": false,
+    "tags": [
+      "welcome",
+      "guide",
+      "ai"
+    ],
+    "createdAt": "2026-09-29T11:43:17.432Z",
+    "updatedAt": "2026-09-29T11:43:17.433Z"
+  },
+  {
+    "id": "note-career-demo",
+    "title": "🎯 Senior Full-Stack Engineer: Interview Prep",
+    "content": "Core Competencies to Highlight:\n1. Architecture: Vite + React 18 frontend, Node.js + Express backend, REST APIs.\n2. AI Integration: Server-side Gemini API calls, structured JSON outputs, streaming tokens, robust offline fallbacks.\n3. STAR Story (High Scale Refactor):\n• Situation: Monolithic frontend had performance bottlenecks and exposed API keys.\n• Task: Architect a decoupled, full-stack system with secure backend AI proxies and sub-second HMR.\n• Action: Migrated to Vite 5, implemented Express REST API, added responsive CSS Grid masonry, built offline fallbacks.\n• Result: 10x faster build times, zero security vulnerabilities, and positive stakeholder reviews.",
+    "isChecklist": false,
+    "checklistItems": [],
+    "color": "coral",
+    "isPinned": true,
+    "isArchived": false,
+    "isTrashed": false,
+    "tags": [
+      "career",
+      "interview",
+      "full-stack"
+    ],
+    "createdAt": "2026-09-29T10:43:17.433Z",
+    "updatedAt": "2026-09-29T10:43:17.433Z"
+  },
+  {
+    "id": "note-checklist-demo",
+    "title": "✅ Technical Job Application Checklist",
+    "content": "",
+    "isChecklist": true,
+    "checklistItems": [
+      {
+        "id": "item-1",
+        "text": "Customize resume with targeted keywords",
+        "completed": true
+      },
+      {
+        "id": "item-2",
+        "text": "Polish GitHub portfolio with live demo links",
+        "completed": true
+      },
+      {
+        "id": "item-3",
+        "text": "Rehearse 2-minute behavioral pitch (STAR method)",
+        "completed": false
+      },
+      {
+        "id": "item-4",
+        "text": "Review React 18 hooks & Express REST API architecture",
+        "completed": false
+      },
+      {
+        "id": "item-5",
+        "text": "Prepare 3 insightful questions for the engineering manager",
+        "completed": false
+      }
+    ],
+    "color": "sage",
+    "isPinned": false,
+    "isArchived": false,
+    "isTrashed": false,
+    "tags": [
+      "career",
+      "urgent"
+    ],
+    "createdAt": "2026-09-29T09:43:17.433Z",
+    "updatedAt": "2026-09-29T09:43:17.433Z"
+  }
+]

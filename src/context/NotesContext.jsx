@@ -1,4 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import {
+  getNotesFromBackend,
+  createNoteOnBackend,
+  updateNoteOnBackend,
+  deleteNoteOnBackend,
+  restoreNoteOnBackend,
+  permanentDeleteNoteOnBackend,
+  emptyTrashOnBackend,
+  duplicateNoteOnBackend
+} from "../services/api";
 
 const NotesContext = createContext();
 
@@ -99,6 +109,21 @@ export function NotesProvider({ children }) {
     return localStorage.getItem("keepai_gemini_key") || "";
   });
 
+  // Fetch notes from backend on mount
+  useEffect(() => {
+    async function initNotes() {
+      try {
+        const backendNotes = await getNotesFromBackend();
+        if (backendNotes && Array.isArray(backendNotes) && backendNotes.length > 0) {
+          setNotes(backendNotes);
+        }
+      } catch (err) {
+        console.warn("Backend init notes warning:", err);
+      }
+    }
+    initNotes();
+  }, []);
+
   // Sync notes to localStorage
   useEffect(() => {
     try {
@@ -135,10 +160,11 @@ export function NotesProvider({ children }) {
   const toggleDarkMode = () => setIsDarkMode(prev => !prev);
   const toggleSidebar = () => setSidebarOpen(prev => !prev);
 
-  // CRUD Note Methods
-  const addNote = (newNote) => {
+  // CRUD Note Methods with Backend Sync
+  const addNote = async (newNote) => {
+    const tempId = `note-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
     const note = {
-      id: `note-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      id: tempId,
       title: newNote.title || "",
       content: newNote.content || "",
       isChecklist: Boolean(newNote.isChecklist),
@@ -152,11 +178,19 @@ export function NotesProvider({ children }) {
       updatedAt: new Date().toISOString()
     };
 
+    // 1. Optimistic local update
     setNotes(prev => [note, ...prev]);
+
+    // 2. Backend sync
+    const created = await createNoteOnBackend(note);
+    if (created && created.id) {
+      setNotes(prev => prev.map(n => n.id === tempId ? created : n));
+    }
     return note;
   };
 
-  const updateNote = (id, updatedFields) => {
+  const updateNote = async (id, updatedFields) => {
+    // 1. Optimistic update
     setNotes(prev =>
       prev.map(note =>
         note.id === id
@@ -164,50 +198,55 @@ export function NotesProvider({ children }) {
           : note
       )
     );
+
+    // 2. Backend sync
+    await updateNoteOnBackend(id, updatedFields);
   };
 
-  const deleteNote = (id) => {
+  const deleteNote = async (id) => {
     // Soft delete -> move to trash
     setNotes(prev =>
       prev.map(note =>
         note.id === id ? { ...note, isTrashed: true, isPinned: false } : note
       )
     );
+    await deleteNoteOnBackend(id);
   };
 
-  const restoreNote = (id) => {
+  const restoreNote = async (id) => {
     setNotes(prev =>
       prev.map(note =>
         note.id === id ? { ...note, isTrashed: false } : note
       )
     );
+    await restoreNoteOnBackend(id);
   };
 
-  const permanentDeleteNote = (id) => {
+  const permanentDeleteNote = async (id) => {
     setNotes(prev => prev.filter(note => note.id !== id));
+    await permanentDeleteNoteOnBackend(id);
   };
 
-  const emptyTrash = () => {
+  const emptyTrash = async () => {
     setNotes(prev => prev.filter(note => !note.isTrashed));
+    await emptyTrashOnBackend();
   };
 
-  const togglePin = (id) => {
-    setNotes(prev =>
-      prev.map(note =>
-        note.id === id ? { ...note, isPinned: !note.isPinned, isArchived: false } : note
-      )
-    );
+  const togglePin = async (id) => {
+    const target = notes.find(n => n.id === id);
+    if (!target) return;
+    const newPinned = !target.isPinned;
+    await updateNote(id, { isPinned: newPinned, isArchived: false });
   };
 
-  const toggleArchive = (id) => {
-    setNotes(prev =>
-      prev.map(note =>
-        note.id === id ? { ...note, isArchived: !note.isArchived, isPinned: false } : note
-      )
-    );
+  const toggleArchive = async (id) => {
+    const target = notes.find(n => n.id === id);
+    if (!target) return;
+    const newArchived = !target.isArchived;
+    await updateNote(id, { isArchived: newArchived, isPinned: false });
   };
 
-  const duplicateNote = (id) => {
+  const duplicateNote = async (id) => {
     const target = notes.find(n => n.id === id);
     if (!target) return;
     const clone = {
@@ -218,6 +257,7 @@ export function NotesProvider({ children }) {
       updatedAt: new Date().toISOString()
     };
     setNotes(prev => [clone, ...prev]);
+    await duplicateNoteOnBackend(id);
   };
 
   const setNoteColor = (id, color) => {

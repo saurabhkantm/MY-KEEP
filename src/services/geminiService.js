@@ -43,10 +43,30 @@ async function callGemini(prompt, apiKey, systemInstruction = "") {
   return text.trim();
 }
 
+async function callBackendAi(endpoint, body) {
+  try {
+    const res = await fetch(`/api/ai/${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.success && data.data) return data.data;
+  } catch {
+    // Backend offline or route unproxied, fall back seamlessly
+  }
+  return null;
+}
+
 /**
  * Summarize note content
  */
 export async function summarizeContent(title, content, apiKey) {
+  // 1. Try secure backend AI endpoint
+  const backendRes = await callBackendAi("summarize", { title, content, apiKey });
+  if (backendRes) return backendRes;
+
   const prompt = `Summarize the following note concisely in 2-3 clear sentences with key takeaways:\n\nTitle: ${title}\nContent:\n${content}`;
   
   if (apiKey) {
@@ -68,6 +88,9 @@ export async function summarizeContent(title, content, apiKey) {
  * Extract action items as checklist items from unformatted note text
  */
 export async function extractActionItems(content, apiKey) {
+  const backendRes = await callBackendAi("extract-checklist", { content, apiKey });
+  if (backendRes) return backendRes;
+
   const prompt = `Read the following text and extract all actionable tasks/to-dos. Return ONLY a JSON array of strings, e.g. ["Task 1", "Task 2"]. No markdown formatting, just raw JSON.\n\nText:\n${content}`;
   
   if (apiKey) {
@@ -113,6 +136,9 @@ export async function extractActionItems(content, apiKey) {
  * Rewrite note into desired tone
  */
 export async function rewriteTone(content, tone, apiKey) {
+  const backendRes = await callBackendAi("rewrite-tone", { content, tone, apiKey });
+  if (backendRes) return backendRes;
+
   const tonePrompts = {
     professional: "Rewrite this content to be polished, formal, and workplace-ready:",
     concise: "Condense this content into the most impactful, brief, direct version:",
@@ -149,6 +175,9 @@ export async function rewriteTone(content, tone, apiKey) {
  * AI Auto-Tag generator
  */
 export async function generateAutoTags(title, content, apiKey) {
+  const backendRes = await callBackendAi("auto-tags", { title, content, apiKey });
+  if (backendRes) return backendRes;
+
   const prompt = `Analyze this note and suggest 2-4 short, relevant lowercase hashtags without '#', e.g. ["interview", "react", "career"]. Return ONLY JSON array of strings.\n\nTitle: ${title}\nContent: ${content}`;
 
   if (apiKey) {
@@ -183,6 +212,9 @@ export async function generateAutoTags(title, content, apiKey) {
  * Converts a Job Title + Job Description into a complete interview prep note
  */
 export async function generateCareerPrep(jobTitle, jobDescription, apiKey) {
+  const backendRes = await callBackendAi("career-prep", { jobTitle, jobDescription, apiKey });
+  if (backendRes) return backendRes;
+
   const prompt = `You are a Senior Engineering Hiring Manager and Career Coach.
 Create a comprehensive, high-impact Interview Prep Guide for the role of "${jobTitle}" based on this job description:
 """${jobDescription}"""
@@ -271,6 +303,9 @@ ${technicalQA.join("\n\n")}
  * "Ask My Notes" - Semantic Query Assistant across all user notes
  */
 export async function askNotes(query, notes, apiKey) {
+  const backendRes = await callBackendAi("ask-notes", { query, notes, apiKey });
+  if (backendRes) return backendRes;
+
   // Format user notes into context
   const nonTrashedNotes = notes.filter(n => !n.isTrashed);
   const contextNotes = nonTrashedNotes.map((n, i) => {
